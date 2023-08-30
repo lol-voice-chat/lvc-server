@@ -23,12 +23,12 @@ class Peer {
     this.consumers = [];
   }
 
-  addTransport(transport, remoteProducerId) {
-    if (!remoteProducerId) {
-      this.producerTransport = transport;
-    } else {
-      this.consumerTransports.set(transport.id, transport);
-    }
+  addProducerTransport(transport) {
+    this.producerTransport = transport;
+  }
+
+  addConsumerTransport(transport) {
+    this.consumerTransports.set(transport.id, transport);
   }
 
   findProducerTransport() {
@@ -47,11 +47,6 @@ class Peer {
     this.consumers[consumer.id] = {
       consumer,
     };
-  }
-
-  closeConsumer() {
-    this.consumers = [];
-    this.consumerTransports = [];
   }
 
   findConsumer(remoteConsumerId) {
