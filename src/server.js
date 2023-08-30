@@ -27,6 +27,7 @@ const socketCors = {
   },
 };
 
+const listenIp = '10.150.150.48';
 const io = new Server(server, socketCors);
 const leagueConnection = io.of('/voice-chat');
 
@@ -65,63 +66,63 @@ leagueConnection.on('connection', (socket) => {
   socket.on('create-producer-transport', async (callback) => {
     const peer = Peer.findBySocketId(socket.id);
     const { router } = Room.findByName(peer.roomName);
-    const transport = await createWebRtcTransport(router);
-    peer.addProducerTransport(transport);
+    createWebRtcTransport(router).then((transport) => {
+      peer.addProducerTransport(transport);
 
-    console.log(`${peer.details.displayName}님 producer transport가 생성되었습니다.`);
+      callback({
+        params: {
+          id: transport.id,
+          iceParameters: transport.iceParameters,
+          iceCandidates: transport.iceCandidates,
+          dtlsParameters: transport.dtlsParameters,
+        },
+      });
 
-    callback({
-      params: {
-        id: transport.id,
-        iceParameters: transport.iceParameters,
-        iceCandidates: transport.iceCandidates,
-        dtlsParameters: transport.dtlsParameters,
-      },
+      console.log(`${peer.details.displayName}님 producer transport가 생성되었습니다.`);
     });
   });
 
   socket.on('create-consumer-transport', async () => {
     const peer = Peer.findBySocketId(socket.id);
     const { router } = Room.findByName(peer.roomName);
-    const transport = await createWebRtcTransport(router);
-    peer.addConsumerTransport(transport);
+    createWebRtcTransport(router).then((transport) => {
+      peer.addConsumerTransport(transport);
 
-    console.log(`${peer.details.displayName}님 consumer transport가 생성되었습니다.`);
+      socket.emit('test', {
+        params: {
+          id: transport.id,
+          iceParameters: transport.iceParameters,
+          iceCandidates: transport.iceCandidates,
+          dtlsParameters: transport.dtlsParameters,
+        },
+      });
 
-    socket.emit('test', {
-      params: {
-        id: transport.id,
-        iceParameters: transport.iceParameters,
-        iceCandidates: transport.iceCandidates,
-        dtlsParameters: transport.dtlsParameters,
-      },
+      console.log(`${peer.details.displayName}님 consumer transport가 생성되었습니다.`);
     });
-    // callback({
-
-    // });
   });
 
-  const createWebRtcTransport = async (router) => {
-    try {
-      const webRtcTransportOptions = {
-        listenIps: [
-          {
-            ip: '10.150.150.48',
-            announcedIp: null,
-          },
-        ],
-        enableUdp: true,
-        enableTcp: true,
-        preferUdp: true,
-      };
+  function createWebRtcTransport(router) {
+    const webRtcTransportOptions = {
+      listenIps: [
+        {
+          ip: listenIp,
+          announcedIp: null,
+        },
+      ],
+      enableUdp: true,
+      enableTcp: true,
+      preferUdp: true,
+    };
 
-      const transport = await router.createWebRtcTransport(webRtcTransportOptions);
-
-      return transport;
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    return new Promise(async (resolve, reject) => {
+      try {
+        const transport = await router.createWebRtcTransport(webRtcTransportOptions);
+        resolve(transport);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
 
   socket.on('transport-connect', async ({ dtlsParameters }) => {
     const peer = Peer.findBySocketId(socket.id);
@@ -133,40 +134,39 @@ leagueConnection.on('connection', (socket) => {
 
   socket.on('transport-produce', async ({ kind, rtpParameters }, callback) => {
     const peer = Peer.findBySocketId(socket.id);
-    const room = Room.findByName(peer.roomName);
     const trnasport = peer.findProducerTransport();
 
     const producer = await trnasport.produce({ kind, rtpParameters });
-    peer.addProducer(producer);
-    informProducersAboutNewProducer(peer, producer.id);
     console.log(`${peer.details.displayName}님 producer가 생성되었습니다.`);
-    const otherPeerList = room.peers.filter((peer) => peer.producer);
-    console.log('test: ', otherPeerList.length > 1);
+
+    informProducersAboutNewProducer(peer, producer.id);
+    peer.addProducer(producer);
+    const otherPeers = Peer.getHasProducerPeerList();
+    console.log('producerExist: ', otherPeers.length > 1);
 
     callback({
       id: producer.id,
-      producersExist: otherPeerList.length > 1,
+      producersExist: otherPeers.length > 1,
     });
   });
 
-  const informProducersAboutNewProducer = (peer, producerId) => {
-    console.log('새로운 Peer 알림: ', peer.details.displayName);
-
-    socket.to(peer.roomName).emit('new-producer', {
-      id: producerId,
-      summonerId: peer.details.summonerId,
-      displayName: peer.details.displayName,
-      profileImage: peer.details.profileImage,
-    });
-  };
+  function informProducersAboutNewProducer(myPeer, producerId) {
+    Peer.getHasProducerPeerList()
+      .filter((peer) => peer.socket.id !== myPeer.socket.id)
+      .forEach((peer) => {
+        console.log('새로운 Peer 알림: ', peer.details.displayName);
+        peer.socket.emit('new-producer', {
+          id: producerId,
+          summonerId: myPeer.details.summonerId,
+          displayName: myPeer.details.displayName,
+          profileImage: myPeer.details.profileImage,
+        });
+      });
+  }
 
   socket.on('get-producers', (callback) => {
-    const { roomName } = Peer.findBySocketId(socket.id);
-    const room = Room.findByName(roomName);
-
-    const producers = room
-      .getOtherPeers(socket.id)
-      .filter((peer) => peer.producer !== null)
+    const producers = Peer.getOtherPeerList(socket.id)
+      .filter((peer) => peer.producer)
       .map((peer) => {
         const response = {
           id: peer.producer.id,
@@ -183,8 +183,6 @@ leagueConnection.on('connection', (socket) => {
 
   socket.on('transport-recv-connect', async ({ dtlsParameters, remoteConsumerId }) => {
     const peer = Peer.findBySocketId(socket.id);
-    console.log('테스트입니다: ', peer.details.displayName);
-
     const transport = peer.findConsumerTransport(remoteConsumerId);
 
     transport.connect({ dtlsParameters });
@@ -229,10 +227,10 @@ leagueConnection.on('connection', (socket) => {
     console.log(`${peer.details.displayName}님 consum resume됨`);
   });
 
-  socket.on('game-loading', async () => {
-    const peer = Peer.findBySocketId(socket.id);
-    await peer.pauseAllConsumers();
-  });
+  // socket.on('game-loading', async () => {
+  //   const peer = Peer.findBySocketId(socket.id);
+  //   await peer.pauseAllConsumers();
+  // });
 
   socket.on('disconnect', () => {
     const peer = Peer.findBySocketId(socket.id);

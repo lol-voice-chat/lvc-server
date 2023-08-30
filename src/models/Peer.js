@@ -86,6 +86,14 @@ Peer.findBySocketId = (socketId) => {
   return Peer.peers.get(socketId);
 };
 
+Peer.getHasProducerPeerList = () => {
+  return Array.from(Peer.peers.values()).filter((peer) => peer.producer);
+};
+
+Peer.getOtherPeerList = (socketId) => {
+  return Array.from(Peer.peers.values()).filter((peer) => peer.socket.id !== socketId);
+};
+
 Peer.delete = (socketId) => {
   Peer.peers.delete(socketId);
 };
