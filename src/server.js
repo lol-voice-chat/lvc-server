@@ -88,7 +88,7 @@ leagueConnection.on('connection', (socket) => {
     createWebRtcTransport(router).then((transport) => {
       peer.addConsumerTransport(transport);
 
-      socket.emit('test', {
+      socket.emit('complete-create-consumer-transport', {
         params: {
           id: transport.id,
           iceParameters: transport.iceParameters,
@@ -141,8 +141,8 @@ leagueConnection.on('connection', (socket) => {
 
     informProducersAboutNewProducer(peer, producer.id);
     peer.addProducer(producer);
-    const otherPeers = Peer.getHasProducerPeerList();
-    console.log('producerExist: ', otherPeers.length > 1);
+    const room = Room.findByName(peer.roomName);
+    const otherPeers = room.peers.filter((peer) => peer.producer);
 
     callback({
       id: producer.id,
@@ -151,10 +151,12 @@ leagueConnection.on('connection', (socket) => {
   });
 
   function informProducersAboutNewProducer(myPeer, producerId) {
-    Peer.getHasProducerPeerList()
-      .filter((peer) => peer.socket.id !== myPeer.socket.id)
+    const room = Room.findByName(myPeer.roomName);
+    room
+      .getOtherPeerList(myPeer.socket.id)
+      .filter((peer) => peer.producer)
       .forEach((peer) => {
-        console.log('새로운 Peer 알림: ', peer.details.displayName);
+        console.log(`새로운친구 ${myPeer.details.displayName} 전달`);
         peer.socket.emit('new-producer', {
           id: producerId,
           summonerId: myPeer.details.summonerId,
@@ -165,7 +167,11 @@ leagueConnection.on('connection', (socket) => {
   }
 
   socket.on('get-producers', (callback) => {
-    const producers = Peer.getOtherPeerList(socket.id)
+    const peer = Peer.findBySocketId(socket.id);
+    const room = Room.findByName(peer.roomName);
+
+    const producers = room
+      .getOtherPeerList(socket.id)
       .filter((peer) => peer.producer)
       .map((peer) => {
         const response = {
@@ -234,23 +240,18 @@ leagueConnection.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     const peer = Peer.findBySocketId(socket.id);
-    let roomName;
 
     if (peer) {
-      roomName = peer.roomName;
-      socket.to(roomName).emit('producer-closed', { remoteProducerId: peer.producer.id });
+      socket.to(peer.roomName).emit('producer-closed', { remoteProducerId: peer.producer.id });
 
-      const room = Room.findByName(roomName);
+      const room = Room.findByName(peer.roomName);
       if (room) {
-        room.peers.forEach((peer) => {
-          peer.disconnectVoice();
-          console.log(`${peer.details.displayName}님이 방을 떠났습니다.`);
-
-          Peer.delete(socket.id);
-        });
-
-        Room.delete(roomName);
+        Room.delete(peer.roomName);
       }
+
+      peer.disconnectVoice();
+      console.log(`${peer.details.displayName}님이 방을 떠났습니다.`);
+      Peer.delete(socket.id);
     }
   });
 });

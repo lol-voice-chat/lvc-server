@@ -12,6 +12,10 @@ class Room {
   addPeer = (peer) => {
     this.peers.push(peer);
   };
+
+  getOtherPeerList = (socketId) => {
+    return this.peers.filter((peer) => peer.socket.id !== socketId);
+  };
 }
 
 Room.save = (roomName, room) => {
