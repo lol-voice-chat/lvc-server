@@ -6,15 +6,25 @@ class Room {
 
   constructor(router) {
     this.router = router;
-    this.peers = [];
+    this.peers = new Map();
   }
 
   addPeer = (peer) => {
-    this.peers.push(peer);
+    this.peers.set(peer.socket.id, peer);
+  };
+
+  findPeerBySocketId = (socketId) => {
+    return this.peers.get(socketId);
   };
 
   getOtherPeerList = (socketId) => {
-    return this.peers.filter((peer) => peer.socket.id !== socketId);
+    return Array.from(this.peers.values()).filter(
+      (peer) => peer.socket.id !== socketId && peer.producer,
+    );
+  };
+
+  deletePeer = (socketId) => {
+    this.peers.delete(socketId);
   };
 }
 

@@ -1,62 +1,50 @@
 class Peer {
-  static peers = new Map();
-
   socket;
   details;
-  roomName;
   producerTransport;
   consumerTransports;
   producer;
   consumers;
+  teamName;
 
-  constructor(socket, summonerId, displayName, profileImage, roomName) {
+  constructor(socket, summoner, teamName = null) {
     this.socket = socket;
     this.details = {
-      summonerId,
-      displayName,
-      profileImage,
+      summoner,
     };
-    this.roomName = roomName;
     this.producerTransport = null;
     this.consumerTransports = new Map();
     this.producer = null;
-    this.consumers = [];
+    this.consumers = new Map();
+    this.teamName = teamName;
   }
 
   addProducerTransport(transport) {
     this.producerTransport = transport;
   }
 
-  addConsumerTransport(transport) {
-    this.consumerTransports.set(transport.id, transport);
+  addConsumerTransport(transport, remoteProducerId) {
+    this.consumerTransports.set(remoteProducerId, transport);
   }
 
   findProducerTransport() {
     return this.producerTransport;
   }
 
-  findConsumerTransport(serverConsumerTransportId) {
-    return this.consumerTransports.get(serverConsumerTransportId);
+  findConsumerTransport(remoteProducerId) {
+    return this.consumerTransports.get(remoteProducerId);
   }
 
   addProducer(producer) {
     this.producer = producer;
   }
 
-  addConsumer(consumer) {
-    this.consumers[consumer.id] = {
-      consumer,
-    };
+  addConsumer(consumer, remoteProducerId) {
+    this.consumers.set(remoteProducerId, consumer);
   }
 
-  findConsumer(remoteConsumerId) {
-    return this.consumers[remoteConsumerId];
-  }
-
-  async pauseAllConsumers() {
-    for (let i = 0; i < this.consumers; i++) {
-      await this.consumers[i].pause();
-    }
+  findConsumer(remoteProducerId) {
+    return this.consumers.get(remoteProducerId);
   }
 
   disconnectVoice() {
@@ -64,30 +52,18 @@ class Peer {
     this.producer?.close();
     this.producerTransport?.close();
 
-    if (this.consumers.length > 0) {
-      this.consumers.forEach((consumer) => {
+    if (this.consumers.size > 0) {
+      Array.from(this.consumers.values()).forEach((consumer) => {
         consumer.close();
       });
     }
 
-    if (this.consumerTransports.length > 0) {
-      this.consumerTransports.forEach((transport) => {
+    if (this.consumerTransports.size > 0) {
+      Array.from(this.consumerTransports.values()).forEach((transport) => {
         transport.close();
       });
     }
   }
 }
-
-Peer.save = (socketId, peer) => {
-  Peer.peers.set(socketId, peer);
-};
-
-Peer.findBySocketId = (socketId) => {
-  return Peer.peers.get(socketId);
-};
-
-Peer.delete = (socketId) => {
-  Peer.peers.delete(socketId);
-};
 
 export default Peer;
