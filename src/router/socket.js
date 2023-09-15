@@ -18,7 +18,7 @@ export default (server) => {
   const io = new Server(server, socketCors);
 
   voiceConnections(io);
-  chatConnections(io);
+  // chatConnections(io);
 };
 
 function voiceConnections(io) {
