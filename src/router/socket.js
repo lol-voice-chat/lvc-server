@@ -5,6 +5,7 @@ import {
   leagueVoiceChatConnection,
 } from './voice/index.js';
 import homeChatConnection from './chat/homeChatConnection.js';
+import friendConnection from './friend/friendConnection.js';
 
 const socketCors = {
   cors: {
@@ -17,11 +18,12 @@ const socketCors = {
 export default (server) => {
   const io = new Server(server, socketCors);
 
-  voiceConnections(io);
-  // chatConnections(io);
+  onVoiceConnections(io);
+  onChatConnections(io);
+  onFriendConnection(io);
 };
 
-function voiceConnections(io) {
+function onVoiceConnections(io) {
   const teamVoiceChatIo = io.of('/team-voice-chat');
   const teamVoiceChatManagerIo = io.of('/team-voice-chat/manage');
   const leagueVoiceChatIo = io.of('/league-voice-chat');
@@ -31,10 +33,15 @@ function voiceConnections(io) {
   leagueVoiceChatIo.on('connection', leagueVoiceChatConnection);
 }
 
-function chatConnections(io) {
+function onChatConnections(io) {
   const homeChatIo = io.of('/home-chat');
 
   homeChatIo.on('connection', (socket) => {
     homeChatConnection(homeChatIo, socket);
   });
+}
+
+function onFriendConnection(io) {
+  const friendIo = io.of('/friend');
+  friendIo.on('connection', friendConnection);
 }
