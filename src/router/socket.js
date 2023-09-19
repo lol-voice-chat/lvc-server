@@ -3,6 +3,7 @@ import {
   teamVoiceChatConnection,
   teamVoiceChatManagerConnection,
   leagueVoiceChatConnection,
+  leagueVoiceChatManagerConnection,
 } from './voice/index.js';
 import homeChatConnection from './chat/homeChatConnection.js';
 import friendConnection from './friend/friendConnection.js';
@@ -27,10 +28,12 @@ function onVoiceConnections(io) {
   const teamVoiceChatIo = io.of('/team-voice-chat');
   const teamVoiceChatManagerIo = io.of('/team-voice-chat/manage');
   const leagueVoiceChatIo = io.of('/league-voice-chat');
+  const leagueVoiceChatManagerIo = io.of('/league-voice-chat/manage');
 
   teamVoiceChatIo.on('connection', teamVoiceChatConnection);
   teamVoiceChatManagerIo.on('connection', teamVoiceChatManagerConnection);
   leagueVoiceChatIo.on('connection', leagueVoiceChatConnection);
+  leagueVoiceChatManagerIo.on('connection', leagueVoiceChatManagerConnection);
 }
 
 function onChatConnections(io) {

@@ -9,16 +9,15 @@ export default (socket) => {
   console.log('전체방 소켓연결성공');
 
   socket.on('league-join-room', async ({ roomName, teamName, summoner }, callback) => {
-    const { summonerId, displayName, profileImage } = summoner;
     socket.join(roomName);
     socket.roomName = roomName;
 
     const room = await getRoomOrCreate(roomName);
-    const peer = new Peer(socket, summonerId, displayName, profileImage, teamName);
+    const peer = new Peer(socket, summoner, teamName);
     room.addPeer(peer);
 
     const rtpCapabilities = room.router.rtpCapabilities;
-    console.log(`${displayName} 전체방 입장`);
+    console.log(`${summoner.displayName} 전체방 입장`);
 
     callback({ rtpCapabilities });
   });
@@ -136,12 +135,12 @@ export default (socket) => {
       .getOtherPeerList(myPeer.socket.id)
       .filter((peer) => peer.teamName !== myPeer.teamName)
       .forEach((peer) => {
-        console.log(`새로운친구 ${myPeer.details.summoner.displayName} 전달`);
+        console.log(
+          `${myPeer.details.summoner.displayName} 왔다고 ${peer.details.summoner.displayName}한테 전달`,
+        );
         peer.socket.emit('new-producer', {
           id: producerId,
-          summonerId: myPeer.details.summonerId,
-          displayName: myPeer.details.displayName,
-          profileImage: myPeer.details.profileImage,
+          summoner: myPeer.details.summoner,
         });
       });
   }
@@ -155,9 +154,7 @@ export default (socket) => {
       .map((peer) => {
         return {
           id: peer.producer.id,
-          summonerId: peer.details.summonerId,
-          displayName: peer.details.displayName,
-          profileImage: peer.details.profileImage,
+          summoner: peer.details.summoner,
         };
       });
     console.log('기존애있던애들 전달');
@@ -223,6 +220,7 @@ export default (socket) => {
   });
 
   socket.on('disconnect', () => {
+    console.log('소켓연결 끊김');
     const room = Room.findByName(socket.roomName);
     if (!room) return;
 
