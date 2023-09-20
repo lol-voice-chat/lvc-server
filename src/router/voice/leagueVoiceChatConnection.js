@@ -15,11 +15,22 @@ export default (socket) => {
     const room = await getRoomOrCreate(roomName);
     const peer = new Peer(socket, summoner, teamName);
     room.addPeer(peer);
-
     const rtpCapabilities = room.router.rtpCapabilities;
     console.log(`${summoner.displayName} 전체방 입장`);
 
-    callback({ rtpCapabilities });
+    //
+    let enemyRoomName = roomName.slice(0, teamName.length - 1);
+    if (enemyRoomName !== teamName) {
+      enemyRoomName = roomName.slice(-teamName.length);
+    }
+
+    const enemyRoom = Room.findByName(enemyRoomName);
+    const leagueTitleList = enemyRoom
+      .getPeerLeagueTitleList()
+      .concat(room.getPeerLeagueTitleList());
+    //
+
+    callback({ rtpCapabilities, leagueTitleList });
   });
 
   async function getRoomOrCreate(roomName) {

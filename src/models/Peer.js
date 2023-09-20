@@ -6,6 +6,7 @@ class Peer {
   producer;
   consumers;
   teamName;
+  leagueTitle;
 
   constructor(socket, summoner, teamName = null) {
     this.socket = socket;
@@ -17,6 +18,7 @@ class Peer {
     this.producer = null;
     this.consumers = new Map();
     this.teamName = teamName;
+    this.leagueTitle = null;
   }
 
   addProducerTransport(transport) {
@@ -63,6 +65,10 @@ class Peer {
         transport.close();
       });
     }
+  }
+
+  saveLeagueTitle(leagueTitle) {
+    this.leagueTitle = leagueTitle;
   }
 }
 
