@@ -13,7 +13,11 @@ const ws = await createWebSocketConnection({
   },
 });
 
-ws.subscribe('/lol-chat/v1/friends', (data, event) => {
-  console.log('data: ', data);
-  console.log('event: ', event);
+ws.subscribe('/lol-champ-select/v1/session', (data) => {
+  console.log('champ select team: ', data.myTeam);
+});
+
+ws.subscribe('/lol-gameflow/v1/session', (data) => {
+  console.log('gameflow team one: ', data.gameData.teamOne);
+  console.log('gameflow team two: ', data.gameData.teamTwo);
 });

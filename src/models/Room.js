@@ -30,6 +30,9 @@ class Room {
   };
 
   saveLeagueTitle = (summonerLeagueTitleList) => {
+    if (summonerLeagueTitleList === null) {
+      return;
+    }
     Array.from(this.peers.values()).forEach((peer) => {
       for (const leagueTitle of summonerLeagueTitleList) {
         if (peer.details.summoner.summonerId === leagueTitle.summonerId) {

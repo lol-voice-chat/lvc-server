@@ -18,17 +18,28 @@ export default (socket) => {
     const rtpCapabilities = room.router.rtpCapabilities;
     console.log(`${summoner.displayName} 전체방 입장`);
 
-    //
-    let enemyRoomName = roomName.slice(0, teamName.length - 1);
-    if (enemyRoomName !== teamName) {
-      enemyRoomName = roomName.slice(-teamName.length);
+    let enemyRoomName = '';
+    if (roomName.slice(0, teamName.length) === teamName) {
+      enemyRoomName = roomName.slice(teamName.length, roomName.length);
+    } else {
+      for (let i = 0; i < roomName.length - teamName.length; i++) {
+        enemyRoomName += roomName[i];
+      }
     }
 
+    console.log('전체방 이름: ', roomName);
+    console.log('적 팀방 이름: ', enemyRoomName);
+    console.log('내 팀방 이름: ', teamName);
+
+    console.log('방 개수: ', Room.rooms.size);
     const enemyRoom = Room.findByName(enemyRoomName);
-    const leagueTitleList = enemyRoom
+    let leagueTitleList = enemyRoom
       .getPeerLeagueTitleList()
       .concat(room.getPeerLeagueTitleList());
     //
+    if (leagueTitleList.filter((leagueTitle) => leagueTitle !== null).length === 0) {
+      leagueTitleList = null;
+    }
 
     callback({ rtpCapabilities, leagueTitleList });
   });
