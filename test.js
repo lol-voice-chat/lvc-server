@@ -1,23 +1,22 @@
-import { createWebSocketConnection } from 'league-connect';
+// import { authenticate, LeagueClient } from 'league-connect';
+// import league from './league.js';
 
-import express from 'express';
+// import express from 'express';
 
-const app = express();
-app.listen(8090, () => {
-  console.log(`test starting`);
-});
+// const app = express();
+// app.listen(8090, () => {
+//   console.log(`test starting`);
+// });
 
-const ws = await createWebSocketConnection({
-  authenticationOptions: {
-    awaitConnection: true,
-  },
-});
+// const credentials = await authenticate({
+//   awaitConnection: true,
+// });
+// const client = new LeagueClient(credentials);
+// client.start();
 
-ws.subscribe('/lol-champ-select/v1/session', (data) => {
-  console.log('champ select team: ', data.myTeam);
-});
+// const test = await league('/lol-chat/v1/me');
+// console.log(test);
 
-ws.subscribe('/lol-gameflow/v1/session', (data) => {
-  console.log('gameflow team one: ', data.gameData.teamOne);
-  console.log('gameflow team two: ', data.gameData.teamTwo);
-});
+// client.on('disconnect', () => {
+//   console.log('종료됨');
+// });

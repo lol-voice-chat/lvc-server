@@ -1,32 +1,50 @@
-let testDb = new Map();
+const testDb = new Map();
 
 export default (socket) => {
-  socket.on('online', ({ displayName, phase, friendNames }, callback) => {
-    const data = {
-      socket,
-      phase,
-    };
+  socket.on(
+    'online-summoner',
+    ({ onlineFriendList, summoner, offlineFriendList }, callback) => {
+      const { displayName } = summoner;
+      const data = {
+        socket,
+        summoner,
+        onlineFriendList,
+      };
 
-    testDb.set(displayName, data);
+      testDb.set(displayName, data);
 
-    let onlineFriendList = [];
-    let offlineFriendList = [];
-    friendNames.forEach((firendName) => {
-      const data = testDb.get(firendName);
+      let onlineFriends = [];
+      let offlineFriends = new Set(offlineFriendList);
+
+      onlineFriendList.forEach((friend) => {
+        const data = testDb.get(friend.displayName);
+
+        if (data) {
+          data.socket.emit('online-friend', summoner);
+          onlineFriends.push(friend);
+        } else {
+          offlineFriends.add(friend);
+        }
+      });
+
+      callback({
+        onlineFriendList: onlineFriends,
+        offlineFriendList: Array.from(offlineFriends.values()),
+      });
+    },
+  );
+
+  socket.on('offline-summoner', ({ summoner }) => {
+    const data = testDb.get(friend.displayName);
+
+    data.onlineFriendList.forEach((friend) => {
+      const data = testDb.get(friend.displayName);
 
       if (data) {
-        const friendData = {
-          displayName,
-          phase,
-        };
-
-        data.socket.emit('inform-online', friendData);
-        onlineFriendList.push(friendData);
-      } else {
-        offlineFriendList.push(firendName);
+        data.socket.emit('offline-friend', summoner);
       }
     });
 
-    callback({ onlineFriendList, offlineFriendList });
+    testDb.delete(summoner.displayName);
   });
 };
