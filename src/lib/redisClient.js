@@ -1,15 +1,21 @@
-import redis from 'redis';
+// import redis from 'redis';
+// import dotenv from 'dotenv';
+// dotenv.config();
 
-const redisClient = redis.createClient({ legacyMode: true });
-redisClient.connect().then();
-const redisCli = redisClient.v4;
+// console.log(process.env.REDIS_USERNAME);
 
-redisClient.on('connect', () => {
-  console.info('Redis connected!');
-});
+// const redisClient = redis.createClient({
+//   url: `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}/0`,
+//   legacyMode: true,
+// });
 
-redisClient.on('error', (err) => {
-  console.error('Redis Client Error', err);
-});
+// redisClient.on('connect', () => {
+//   console.info('Redis connected!');
+// });
 
-export default redisCli;
+// redisClient.on('error', (err) => {
+//   console.error('Redis Client Error', err);
+// });
+
+// redisClient.connect().then();
+// export const redisCli = redisClient.v4;

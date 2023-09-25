@@ -1,22 +1,22 @@
-// import { authenticate, LeagueClient } from 'league-connect';
-// import league from './league.js';
+import { authenticate, createHttp1Request } from 'league-connect';
 
-// import express from 'express';
+import express from 'express';
 
-// const app = express();
-// app.listen(8090, () => {
-//   console.log(`test starting`);
-// });
+const app = express();
+app.listen(8090, () => {
+  console.log(`test starting`);
+});
 
-// const credentials = await authenticate({
-//   awaitConnection: true,
-// });
-// const client = new LeagueClient(credentials);
-// client.start();
+const credentials = await authenticate({
+  awaitConnection: true,
+});
 
-// const test = await league('/lol-chat/v1/me');
-// console.log(test);
+const response = await createHttp1Request(
+  {
+    method: 'GET',
+    url: '/lol-match-history/v1/products/lol/current-summoner/matches',
+  },
+  credentials,
+);
 
-// client.on('disconnect', () => {
-//   console.log('종료됨');
-// });
+console.log('test: ', JSON.parse(response.text()).games.games);
