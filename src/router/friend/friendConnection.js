@@ -27,9 +27,7 @@ export default (io, socket) => {
         onlineFriendList: JSON.stringify(onlineFriendList),
       });
 
-      const test1 = JSON.stringify(summoner);
-      const test2 = JSON.stringify(onlineFriendList);
-      console.log('저장완료: ', JSON.parse(test1), JSON.parse(test2));
+      console.log('저장완료');
 
       let onlineFriends = [];
       let offlineFriends = new Set(offlineFriendList);
@@ -66,6 +64,7 @@ export default (io, socket) => {
     }
 
     await redisClient.del(summoner.displayName);
+    console.log('나감');
   });
 
   socket.on('disconnect', async () => {
