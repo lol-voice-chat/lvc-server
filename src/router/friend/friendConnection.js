@@ -26,7 +26,10 @@ export default (io, socket) => {
         summoner: JSON.stringify(summoner),
         onlineFriendList: JSON.stringify(onlineFriendList),
       });
-      console.log('저장완료');
+
+      const test1 = JSON.stringify(summoner);
+      const test2 = JSON.stringify(onlineFriendList);
+      console.log('저장완료: ', JSON.parse(test1), JSON.parse(test2));
 
       let onlineFriends = [];
       let offlineFriends = new Set(offlineFriendList);
