@@ -1,8 +1,4 @@
-const testDb = new Map();
-
 import redis from 'redis';
-import dotenv from 'dotenv';
-dotenv.config();
 
 const redisClient = redis.createClient({
   url: `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}/0`,
@@ -18,20 +14,16 @@ redisClient.on('error', (err) => {
 
 redisClient.connect().then();
 
-export default (socket) => {
+export default (io, socket) => {
   socket.on(
     'online-summoner',
     async ({ onlineFriendList, summoner, offlineFriendList }, callback) => {
       socket.summoner = summoner;
-      // const data = {
-      //   socket,
-      //   summoner,
-      //   onlineFriendList,
-      // };
 
+      //저장
       await redisClient.hSet(summoner.displayName, {
-        // socket: JSON.stringify(socket),
-        summoner: 'summoner',
+        socketId: socket.id,
+        summoner: JSON.stringify(summoner),
         onlineFriendList: JSON.stringify(onlineFriendList),
       });
       console.log('저장완료');
@@ -44,7 +36,7 @@ export default (socket) => {
 
         if (exist) {
           const data = await redisClient.hGetAll(onlineFriend.displayName);
-          JSON.parse(data.socket).emit('online-friend', summoner);
+          io.to(data.socketId).emit('online-friend', summoner);
           onlineFriends.push(onlineFriend);
         } else {
           offlineFriends.add(onlineFriend);
@@ -58,33 +50,34 @@ export default (socket) => {
     },
   );
 
-  // socket.on('offline-summoner', async (summoner) => {
-  //   const data = await redisCli.hgetall(summoner.displayName);
+  socket.on('offline-summoner', async (summoner) => {
+    const data = await redisClient.hGetAll(summoner.displayName);
 
-  //   for (const onlineFriend of data.onlineFriendList) {
-  //     const exist = await redisCli.exists(onlineFriend.displayName);
+    for (const onlineFriend of JSON.parse(data.onlineFriendList)) {
+      const exist = await redisClient.exists(onlineFriend.displayName);
 
-  //     if (exist) {
-  //       const friendData = await redisCli.hgetall(onlineFriend.displayName);
-  //       friendData.socket.emit('offline-friend', summoner);
-  //     }
-  //   }
+      if (exist) {
+        const friendData = await redisClient.hGetAll(onlineFriend.displayName);
+        io.to(friendData.socketId).emit('offline-friend', summoner);
+      }
+    }
 
-  //   await redisCli.del(summoner.displayName);
-  // });
+    await redisClient.del(summoner.displayName);
+  });
 
-  // socket.on('disconnect', async () => {
-  //   const data = await redisCli.hgetall(socket.summoner.displayName);
+  socket.on('disconnect', async () => {
+    const data = await redisClient.hGetAll(socket.summoner.displayName);
 
-  //   for (const onlineFriend of data.onlineFriendList) {
-  //     const exist = await redisCli.exists(onlineFriend.displayName);
+    for (const onlineFriend of JSON.parse(data.onlineFriendList)) {
+      const exist = await redisClient.exists(onlineFriend.displayName);
 
-  //     if (exist) {
-  //       const friendData = await redisCli.hgetall(onlineFriend.displayName);
-  //       friendData.socket.emit('offline-friend', socket.summoner);
-  //     }
-  //   }
+      if (exist) {
+        const friendData = await redisClient.hGetAll(onlineFriend.displayName);
+        io.to(friendData.socketId).emit('offline-friend', socket.summoner);
+      }
+    }
 
-  //   await redisCli.del(summoner.displayName);
-  // });
+    await redisClient.del(socket.summoner.displayName);
+    console.log('나감');
+  });
 };

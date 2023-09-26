@@ -38,7 +38,6 @@ function onVoiceConnections(io) {
 
 function onChatConnections(io) {
   const homeChatIo = io.of('/home-chat');
-
   homeChatIo.on('connection', (socket) => {
     homeChatConnection(homeChatIo, socket);
   });
@@ -46,5 +45,7 @@ function onChatConnections(io) {
 
 function onFriendConnection(io) {
   const friendIo = io.of('/friend');
-  friendIo.on('connection', friendConnection);
+  friendIo.on('connection', (socket) => {
+    friendConnection(friendIo, socket);
+  });
 }
