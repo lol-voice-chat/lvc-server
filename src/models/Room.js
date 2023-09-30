@@ -12,7 +12,7 @@ class Room {
   }
 
   addPeer = (peer) => {
-    this.peers.set(peer.socket.id, peer);
+    this.peers.set(peer.socketId, peer);
   };
 
   findPeerBySocketId = (socketId) => {

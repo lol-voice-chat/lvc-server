@@ -1,5 +1,5 @@
 class Peer {
-  socket;
+  socketId;
   details;
   producerTransport;
   consumerTransports;
@@ -8,11 +8,9 @@ class Peer {
   teamName;
   leagueTitle;
 
-  constructor(socket, summoner, teamName = null) {
-    this.socket = socket;
-    this.details = {
-      summoner,
-    };
+  constructor(socketId, summoner, teamName = null) {
+    this.socketId = socketId;
+    this.details = summoner;
     this.producerTransport = null;
     this.consumerTransports = new Map();
     this.producer = null;

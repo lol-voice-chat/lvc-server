@@ -1,4 +1,4 @@
-import redis from 'redis';
+import * as redis from 'redis';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -7,7 +7,7 @@ const redisClient = redis.createClient({
 });
 
 redisClient.on('connect', () => {
-  console.info('Redis connected!');
+  console.info('Redis 연결됨');
 });
 
 redisClient.on('error', (err) => {

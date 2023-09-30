@@ -6,7 +6,7 @@ import {
   leagueVoiceChatManagerConnection,
 } from './voice/index.js';
 import homeChatConnection from './chat/homeChatConnection.js';
-import friendConnection from './friend/friendConnection.js';
+import recentSummonerConnection from './recentSummoner/recentSummonerConnection.js';
 
 const socketCors = {
   cors: {
@@ -21,7 +21,7 @@ export default (server) => {
 
   onVoiceConnections(io);
   onChatConnections(io);
-  onFriendConnection(io);
+  onRecentSummonerConnection(io);
 };
 
 function onVoiceConnections(io) {
@@ -30,7 +30,9 @@ function onVoiceConnections(io) {
   const leagueVoiceChatIo = io.of('/league-voice-chat');
   const leagueVoiceChatManagerIo = io.of('/league-voice-chat/manage');
 
-  teamVoiceChatIo.on('connection', teamVoiceChatConnection);
+  teamVoiceChatIo.on('connection', (socket) => {
+    teamVoiceChatConnection(teamVoiceChatIo, socket);
+  });
   teamVoiceChatManagerIo.on('connection', teamVoiceChatManagerConnection);
   leagueVoiceChatIo.on('connection', leagueVoiceChatConnection);
   leagueVoiceChatManagerIo.on('connection', leagueVoiceChatManagerConnection);
@@ -43,9 +45,7 @@ function onChatConnections(io) {
   });
 }
 
-function onFriendConnection(io) {
-  const friendIo = io.of('/friend');
-  friendIo.on('connection', (socket) => {
-    friendConnection(friendIo, socket);
-  });
+function onRecentSummonerConnection(io) {
+  const recentSummonerIo = io.of('/summoner-status');
+  recentSummonerIo.on('connection', recentSummonerConnection);
 }
