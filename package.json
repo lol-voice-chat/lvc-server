@@ -11,13 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "league-connect": "^6.0.0-rc12",
     "mediasoup": "^3.12.10",
-    "moment": "^2.29.4",
     "redis": "^4.6.8",
-    "redis-cli": "^2.1.2",
     "socket.io": "^4.7.2"
   },
   "type": "module"

@@ -48,7 +48,6 @@ class Peer {
   }
 
   disconnectVoice() {
-    this.socket.leave(this.roomName);
     this.producer?.close();
     this.producerTransport?.close();
 

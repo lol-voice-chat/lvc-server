@@ -21,7 +21,7 @@ class Room {
 
   getOtherPeerList = (socketId) => {
     return Array.from(this.peers.values()).filter(
-      (peer) => peer.socket.id !== socketId && peer.producer,
+      (peer) => peer.socketId !== socketId && peer.producer,
     );
   };
 
@@ -35,7 +35,7 @@ class Room {
     }
     Array.from(this.peers.values()).forEach((peer) => {
       for (const leagueTitle of summonerLeagueTitleList) {
-        if (peer.details.summoner.summonerId === leagueTitle.summonerId) {
+        if (peer.details.summonerId === leagueTitle.summonerId) {
           peer.saveLeagueTitle(leagueTitle);
           break;
         }

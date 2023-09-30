@@ -4,7 +4,7 @@ const EXPIRE_TIME = 604800;
 
 export default (socket) => {
   socket.on('online-summoner', async (summoner, callback) => {
-    console.log('메인화면 접속');
+    console.log(`${summoner.name} 메인화면 접속`);
     const redisKey = summoner.summonerId.toString() + 'recent';
     socket.summonerId = summoner.summonerId;
 
@@ -12,7 +12,7 @@ export default (socket) => {
 
     if (existsMe) {
       const foundMe = await redisClient.hGetAll(redisKey);
-      const me = JSON.parse(foundMe);
+      const me = JSON.parse(foundMe.summoner);
 
       const newRecentSummonerIdList = [];
       const recentSummonerList = await Promise.all(
@@ -24,7 +24,7 @@ export default (socket) => {
             newRecentSummonerIdList.push(recentSummonerId);
 
             const foundRecentSummoner = await redisClient.hGetAll(redisKey);
-            const recentSummoner = JSON.parse(foundRecentSummoner);
+            const recentSummoner = JSON.parse(foundRecentSummoner.summoner);
             return recentSummoner.details;
           }
         }),
@@ -42,11 +42,13 @@ export default (socket) => {
       callback(recentSummonerIdList);
 
       const me = {
-        details,
+        details: summoner,
         recentSummonerIdList,
       };
 
-      await redisClient.hSet(redisKey, JSON.stringify(me));
+      await redisClient.hSet(redisKey, {
+        summoner: JSON.stringify(me),
+      });
       await redisClient.expire(redisKey, EXPIRE_TIME);
     }
   });
@@ -54,12 +56,16 @@ export default (socket) => {
   socket.on('start-in-game', async (summonerIdList) => {
     const redisKey = socket.summonerId.toString() + 'recent';
     const foundMe = await redisClient.hGetAll(redisKey);
-    const me = JSON.parse(foundMe);
+    const me = JSON.parse(foundMe.summoner);
 
     me.recentSummonerIdList = me.recentSummonerIdList.concat(summonerIdList);
 
     await redisClient.hSet(redisKey, JSON.stringify(me));
     await redisClient.expire(redisKey, EXPIRE_TIME);
     console.log('최근 함께한 소환사 업데이트');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('나감');
   });
 };
