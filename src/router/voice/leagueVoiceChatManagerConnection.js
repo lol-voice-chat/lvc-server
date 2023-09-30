@@ -1,5 +1,5 @@
 export default (socket) => {
-  console.log('리그보이스 매니저 소켓연결성공');
+  console.log('리그보이스 매니저 연결');
 
   socket.on('league-manage-join-room', (roomName) => {
     socket.roomName = roomName;
@@ -11,6 +11,6 @@ export default (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('리그보이스 매니저 소켓연결 끊어짐');
+    console.log('리그보이스 매니저 연결 종료');
   });
 };

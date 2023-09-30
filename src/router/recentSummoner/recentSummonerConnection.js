@@ -3,7 +3,7 @@ import redisClient from '../../lib/redisClient.js';
 const EXPIRE_TIME = 604800;
 
 export default (socket) => {
-  socket.on('online-summoner', async (summoner, callback) => {
+  socket.on('online-summoner', async ({ summoner, friendSummonerIdList }, callback) => {
     console.log(`${summoner.name} 메인화면 접속`);
     const redisKey = summoner.summonerId.toString() + 'recent';
     socket.summonerId = summoner.summonerId;
@@ -25,6 +25,12 @@ export default (socket) => {
 
             const foundRecentSummoner = await redisClient.get(redisKey);
             const recentSummoner = JSON.parse(foundRecentSummoner);
+
+            if (friendSummonerIdList.includes(recentSummonerId)) {
+              recentSummoner.details.isRequested = true;
+              await redisClient.set(redisKey, JSON.stringify(recentSummoner));
+            }
+
             return recentSummoner.details;
           }
         }),
@@ -41,6 +47,7 @@ export default (socket) => {
       const recentSummonerIdList = [];
       callback(recentSummonerIdList);
 
+      summoner.isRequested = false;
       const me = {
         details: summoner,
         recentSummonerIdList,
@@ -65,5 +72,15 @@ export default (socket) => {
 
   socket.on('disconnect', () => {
     console.log('나감');
+  });
+
+  socket.on('friend-request', async (summonerId) => {
+    const redisKey = summonerId + 'recent';
+    const foundSummoner = await redisClient.get(redisKey);
+    const summoner = JSON.parse(foundSummoner);
+
+    summoner.details.isRequested = true;
+    await redisClient.set(redisKey, JSON.stringify(summoner));
+    console.log(`${summoner.details.name} 한테 친구요청 완료`);
   });
 };

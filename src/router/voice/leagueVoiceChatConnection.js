@@ -27,11 +27,6 @@ export default (socket) => {
       }
     }
 
-    console.log('전체방 이름: ', roomName);
-    console.log('적 팀방 이름: ', enemyRoomName);
-    console.log('내 팀방 이름: ', teamName);
-
-    console.log('방 개수: ', Room.rooms.size);
     const enemyRoom = Room.findByName(enemyRoomName);
     let leagueTitleList = enemyRoom
       .getPeerLeagueTitleList()

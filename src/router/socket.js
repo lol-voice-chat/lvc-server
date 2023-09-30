@@ -5,8 +5,9 @@ import {
   leagueVoiceChatConnection,
   leagueVoiceChatManagerConnection,
 } from './voice/index.js';
-import homeChatConnection from './chat/homeChatConnection.js';
+import mainChatConnection from './chat/mainChatConnection.js';
 import recentSummonerConnection from './recentSummoner/recentSummonerConnection.js';
+import { WebSocketServer } from 'ws';
 
 const socketCors = {
   cors: {
@@ -18,10 +19,11 @@ const socketCors = {
 
 export default (server) => {
   const io = new Server(server, socketCors);
+  const wss = new WebSocketServer({ port: 8001 });
 
   onVoiceConnections(io);
-  onChatConnections(io);
   onRecentSummonerConnection(io);
+  onMainChatConnection(wss);
 };
 
 function onVoiceConnections(io) {
@@ -38,14 +40,11 @@ function onVoiceConnections(io) {
   leagueVoiceChatManagerIo.on('connection', leagueVoiceChatManagerConnection);
 }
 
-function onChatConnections(io) {
-  const homeChatIo = io.of('/home-chat');
-  homeChatIo.on('connection', (socket) => {
-    homeChatConnection(homeChatIo, socket);
-  });
-}
-
 function onRecentSummonerConnection(io) {
   const recentSummonerIo = io.of('/summoner-status');
   recentSummonerIo.on('connection', recentSummonerConnection);
+}
+
+function onMainChatConnection(wss) {
+  wss.on('connection', mainChatConnection);
 }
