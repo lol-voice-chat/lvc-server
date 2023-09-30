@@ -19,7 +19,7 @@ const socketCors = {
 
 export default (server) => {
   const io = new Server(server, socketCors);
-  const wss = new WebSocketServer({ port: 8001 });
+  const wss = new WebSocketServer({ port: 8081 });
 
   onVoiceConnections(io);
   onRecentSummonerConnection(io);
@@ -46,5 +46,7 @@ function onRecentSummonerConnection(io) {
 }
 
 function onMainChatConnection(wss) {
-  wss.on('connection', mainChatConnection);
+  wss.on('connection', (ws) => {
+    mainChatConnection(wss, ws);
+  });
 }
