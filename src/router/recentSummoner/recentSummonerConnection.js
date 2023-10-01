@@ -71,7 +71,7 @@ export default (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('나감');
+    console.log('메인화면 나감');
   });
 
   socket.on('friend-request', async (summonerId) => {

@@ -1,11 +1,12 @@
-import dayjs from 'dayjs';
-import 'dayjs/locale/ko.js';
-dayjs.locale('ko');
+// import { createWebSocketConnection } from 'league-connect';
 
-console.log(
-  dayjs()
-    .locale('ko')
-    .format('MM/DD ddd HH:mm:ss A')
-    .replace('오전', 'AM')
-    .replace('오후', 'PM'),
-);
+// const ws = await createWebSocketConnection({
+//   authenticationOptions: {
+//     awaitConnection: true,
+//   },
+// });
+
+// console.log('?!');
+// ws.subscribe('/lol-game-settings/v1/game-settings', (data) => {
+//   console.log(data);
+// });
