@@ -15,8 +15,6 @@ export default (socket) => {
     const room = await getRoomOrCreate(roomName);
     const peer = new Peer(socket, summoner, teamName);
     room.addPeer(peer);
-    const rtpCapabilities = room.router.rtpCapabilities;
-    console.log(`${summoner.displayName} 전체방 입장`);
 
     let enemyRoomName = '';
     if (roomName.slice(0, teamName.length) === teamName) {
@@ -36,7 +34,9 @@ export default (socket) => {
       leagueTitleList = null;
     }
 
+    const rtpCapabilities = room.router.rtpCapabilities;
     callback({ rtpCapabilities, leagueTitleList });
+    console.log(`${summoner.name} 방 입장`);
   });
 
   async function getRoomOrCreate(roomName) {
@@ -60,38 +60,30 @@ export default (socket) => {
       peer.addProducerTransport(transport);
 
       callback({
-        params: {
-          id: transport.id,
-          iceParameters: transport.iceParameters,
-          iceCandidates: transport.iceCandidates,
-          dtlsParameters: transport.dtlsParameters,
-        },
+        id: transport.id,
+        iceParameters: transport.iceParameters,
+        iceCandidates: transport.iceCandidates,
+        dtlsParameters: transport.dtlsParameters,
       });
 
-      console.log(
-        `${peer.details.summoner.displayName}님 producer transport가 생성되었습니다.`,
-      );
+      console.log(`${peer.details.name} producer transport 생성`);
     });
   });
 
-  socket.on('create-consumer-transport', async ({ remoteProducerId }) => {
+  socket.on('create-consumer-transport', async (remoteProducerId) => {
     const room = Room.findByName(socket.roomName);
     const peer = room.findPeerBySocketId(socket.id);
     createWebRtcTransport(room.router).then((transport) => {
       peer.addConsumerTransport(transport, remoteProducerId);
 
       socket.emit('complete-create-consumer-transport', {
-        params: {
-          id: transport.id,
-          iceParameters: transport.iceParameters,
-          iceCandidates: transport.iceCandidates,
-          dtlsParameters: transport.dtlsParameters,
-        },
+        id: transport.id,
+        iceParameters: transport.iceParameters,
+        iceCandidates: transport.iceCandidates,
+        dtlsParameters: transport.dtlsParameters,
       });
 
-      console.log(
-        `${peer.details.summoner.displayName}님 consumer transport가 생성되었습니다.`,
-      );
+      console.log(`${peer.details.name} consumer transport 생성`);
     });
   });
 
@@ -124,9 +116,7 @@ export default (socket) => {
     const trnasport = peer.findProducerTransport();
 
     trnasport.connect({ dtlsParameters });
-    console.log(
-      `${peer.details.summoner.displayName}님 producer transport가 연결되었습니다.`,
-    );
+    console.log(`${peer.details.name} producer transport 연결`);
   });
 
   socket.on('transport-produce', async ({ kind, rtpParameters }, callback) => {
@@ -135,9 +125,9 @@ export default (socket) => {
     const trnasport = peer.findProducerTransport();
 
     const producer = await trnasport.produce({ kind, rtpParameters });
-    console.log(`${peer.details.summoner.displayName}님 producer가 생성되었습니다.`);
+    console.log(`${peer.details.name} producer가 생성`);
 
-    informProducersAboutNewProducer(room, peer, producer.id);
+    informNewProducer(room, peer, producer.id);
     peer.addProducer(producer);
     const otherPeers = room.getOtherPeerList(peer.socket.id);
 
@@ -147,36 +137,35 @@ export default (socket) => {
     });
   });
 
-  function informProducersAboutNewProducer(room, myPeer, producerId) {
+  function informNewProducer(room, me, producerId) {
     room
-      .getOtherPeerList(myPeer.socket.id)
+      .getOtherPeerList(me.socketId)
       .filter((peer) => peer.teamName !== myPeer.teamName)
       .forEach((peer) => {
-        console.log(
-          `${myPeer.details.summoner.displayName} 왔다고 ${peer.details.summoner.displayName}한테 전달`,
-        );
-        peer.socket.emit('new-producer', {
+        io.to(peer.socketId).emit('new-producer', {
           id: producerId,
-          summoner: myPeer.details.summoner,
+          summoner: me.details,
         });
       });
+
+    console.log(`${me.details.name} 새롭게 입장했다고 알림`);
   }
 
   socket.on('get-producers', (callback) => {
     const room = Room.findByName(socket.roomName);
-    const myPeer = room.findPeerBySocketId(socket.id);
+    const me = room.findPeerBySocketId(socket.id);
     const producers = room
       .getOtherPeerList(socket.id)
-      .filter((peer) => peer.teamName !== myPeer.teamName)
+      .filter((peer) => peer.teamName !== me.teamName)
       .map((peer) => {
         return {
           id: peer.producer.id,
-          summoner: peer.details.summoner,
+          summoner: peer.details,
         };
       });
-    console.log('기존애있던애들 전달');
 
     callback(producers);
+    console.log(`새롭게 들어온 ${me.details.name}한테 기존애있던애들 정보 전달`);
   });
 
   socket.on('transport-recv-connect', async ({ dtlsParameters, remoteProducerId }) => {
@@ -185,7 +174,7 @@ export default (socket) => {
     const transport = peer.findConsumerTransport(remoteProducerId);
 
     transport.connect({ dtlsParameters });
-    console.log(`${peer.details.summoner.displayName}님 consumer transport 연결성공`);
+    console.log(`${peer.details.name}님consumer transport 연결`);
   });
 
   socket.on('consume', async ({ rtpCapabilities, remoteProducerId }, callback) => {
@@ -201,7 +190,7 @@ export default (socket) => {
       });
 
       peer.addConsumer(consumer, remoteProducerId);
-      console.log(`${peer.details.summoner.displayName}님 consumer 생성`);
+      console.log(`${peer.details.name} consumer 생성`);
 
       callback({
         params: {
@@ -215,56 +204,57 @@ export default (socket) => {
     }
   });
 
-  socket.on('consumer-resume', async ({ remoteProducerId }) => {
+  socket.on('consumer-resume', async (remoteProducerId) => {
     const room = Room.findByName(socket.roomName);
     const peer = room.findPeerBySocketId(socket.id);
     const consumer = peer.findConsumer(remoteProducerId);
 
     await consumer.resume();
-    console.log(`${peer.details.summoner.displayName}님 consum resume됨`);
+    console.log(`${peer.details.name} consum resume`);
   });
 
   socket.on('start-in-game', () => {
     const room = Room.findByName(socket.roomName);
-    if (!room) return;
 
-    Array.from(room.peers.values()).forEach((peer) => {
-      peer.disconnectVoice();
-      console.log(`${peer.details.summoner.displayName}님이 전체방을 떠났습니다.`);
-    });
+    if (room) {
+      Array.from(room.peers.values()).forEach((peer) => {
+        socket.leave(socket.roomName);
+        peer.disconnectVoice();
+        console.log(`${peer.details.name} 전체방 나감`);
+      });
 
-    Room.delete(socket.roomName);
+      Room.delete(socket.roomName);
+    }
   });
 
   socket.on('disconnect', () => {
-    console.log('소켓연결 끊김');
     const room = Room.findByName(socket.roomName);
-    if (!room) return;
 
-    const disconnectedPeer = room.findPeerBySocketId(socket.id);
+    if (room) {
+      const disconnectedPeer = room.findPeerBySocketId(socket.id);
 
-    socket
-      .to(socket.roomName)
-      .emit('inform-exit-in-game', { summonerId: disconnectedPeer.details.summonerId });
+      socket
+        .to(socket.roomName)
+        .emit('inform-exit-in-game', { summonerId: disconnectedPeer.details.summonerId });
 
-    Array.from(room.peers.values())
-      .filter((peer) => peer.socket.id !== socket.id)
-      .forEach((peer) => {
-        const consumer = peer.consumers.get(disconnectedPeer.producer.id);
-        consumer.close();
-        peer.consumers.delete(disconnectedPeer.producer.id);
+      Array.from(room.peers.values())
+        .filter((peer) => peer.socketId !== socket.id)
+        .forEach((peer) => {
+          const consumer = peer.consumers.get(disconnectedPeer.producer.id);
+          consumer.close();
+          peer.consumers.delete(disconnectedPeer.producer.id);
 
-        const consumerTransport = peer.consumerTransports.get(
-          disconnectedPeer.producer.id,
-        );
-        consumerTransport.close();
-        peer.consumerTransports.delete(disconnectedPeer.producer.id);
-      });
+          const consumerTransport = peer.consumerTransports.get(
+            disconnectedPeer.producer.id,
+          );
+          consumerTransport.close();
+          peer.consumerTransports.delete(disconnectedPeer.producer.id);
+        });
 
-    disconnectedPeer.disconnectVoice();
-    room.deletePeer(socket.id);
-    console.log(
-      `${disconnectedPeer.details.summoner.displayName}님이 전체방을 떠났습니다.`,
-    );
+      socket.leave(socket.roomName);
+      disconnectedPeer.disconnectVoice();
+      room.deletePeer(socket.id);
+      console.log(`${disconnectedPeer.details.name} 전체방 나감`);
+    }
   });
 };

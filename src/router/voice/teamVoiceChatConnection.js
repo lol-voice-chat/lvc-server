@@ -130,14 +130,6 @@ export default (io, socket) => {
         summoner: me.details,
       });
     });
-    // const otherPeerSocketIds = room
-    //   .getOtherPeerList(me.socketId)
-    //   .map((peer) => peer.socketId.toString());
-
-    // io.to(otherPeerSocketIds).emit('new-producer', {
-    //   id: producerId,
-    //   summoner: me.details,
-    // });
 
     console.log(`${me.details.name} 새롭게 입장했다고 알림`);
   }

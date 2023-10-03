@@ -6,9 +6,9 @@ export default (socket) => {
     socket.join(roomName);
   });
 
-  socket.on('champion-info', (championinfo) => {
-    socket.to(socket.roomName).emit('champion-info', championinfo);
-  });
+  // socket.on('champion-info', async (championinfo) => {
+  //   socket.to(socket.roomName).emit('champion-info', championinfo);
+  // });
 
   socket.on('mic-visualizer', ({ summonerId, visualizerVolume }) => {
     socket.to(socket.roomName).emit('mic-visualizer', { summonerId, visualizerVolume });
