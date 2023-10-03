@@ -7,7 +7,7 @@ dayjs.locale('ko');
 dotenv.config();
 
 export default async (wss, ws) => {
-  const messageList = (await redisClient.lRange('main-chat', 0, 10)).reverse();
+  const messageList = (await redisClient.lRange('main-chat', 0, 99)).reverse();
 
   const sendData = {
     key: 'init',
@@ -45,16 +45,27 @@ export default async (wss, ws) => {
     }
 
     if (_data.key === 'before-message') {
+      console.log('감지: ', _data.page);
       if (_data.page) {
-        const pageNumber = parseInt(_data.page.toString() + '0') + 1;
+        const pageNumber = parseInt(_data.page.toString() + '00');
+        const length = await redisClient.lLen('main-chat');
+        console.log('총길이: ', length);
 
-        const messageList = (
-          await redisClient.lRange('main-chat', pageNumber, pageNumber + 10)
-        ).reverse();
+        let messageList;
+        let isLast = false;
+        if (pageNumber + 100 >= length) {
+          messageList = (await redisClient.lRange('main-chat', pageNumber, -1)).reverse();
+          isLast = true;
+        } else {
+          messageList = (
+            await redisClient.lRange('main-chat', pageNumber, pageNumber + 100)
+          ).reverse();
+        }
 
         const sendData = {
           key: 'response-before-message',
           messageList,
+          isLast,
         };
         ws.send(JSON.stringify(sendData));
       }

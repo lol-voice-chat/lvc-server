@@ -17,7 +17,7 @@ export default (socket) => {
       const newRecentSummonerIdList = [];
       const recentSummonerList = await Promise.all(
         me.recentSummonerIdList.map(async (recentSummonerId) => {
-          const redisKey = recentSummonerId.toString() + 'recent';
+          const redisKey = recentSummonerId.toString() + 'recent'; //계속 에러남
           const existsRecentSummoner = await redisClient.exists(redisKey);
 
           if (existsRecentSummoner) {

@@ -36,7 +36,9 @@ function onVoiceConnections(io) {
     teamVoiceChatConnection(teamVoiceChatIo, socket);
   });
   teamVoiceChatManagerIo.on('connection', teamVoiceChatManagerConnection);
-  leagueVoiceChatIo.on('connection', leagueVoiceChatConnection);
+  leagueVoiceChatIo.on('connection', (socket) => {
+    leagueVoiceChatConnection(leagueVoiceChatIo, socket);
+  });
   leagueVoiceChatManagerIo.on('connection', leagueVoiceChatManagerConnection);
 }
 

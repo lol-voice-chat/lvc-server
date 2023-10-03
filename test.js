@@ -1,4 +1,26 @@
-import { createWebSocketConnection } from 'league-connect';
+import {
+  authenticate,
+  createHttp1Request,
+  createWebSocketConnection,
+} from 'league-connect';
+
+// async function http() {
+//   const credentials = await authenticate({
+//     awaitConnection: true,
+//   });
+
+//   const response = await createHttp1Request(
+//     {
+//       method: 'GET',
+//       url: '/lol-gameflow/v1/session',
+//     },
+//     credentials,
+//   );
+
+//   return JSON.parse(response.text());
+// }
+
+// console.log(await http());
 
 const ws = await createWebSocketConnection({
   authenticationOptions: {
@@ -6,14 +28,6 @@ const ws = await createWebSocketConnection({
   },
 });
 
-ws.subscribe('/lol-champ-select/v1/session', (data) => {
-  console.log('?');
-  // for (const summoner of data.myTeam) {
-  //   if (summoner.championId !== 0 && summoner.championId) {
-  //     console.log('test: ', data.myTeam.length);
-  //   }
-  // }
-  // if (data.timer.phase === 'BAN_PICK') {
-  //   console.log(data.myTeam);
-  // }
+ws.subscribe('/lol-gameflow/v1/session', (data) => {
+  console.log(data.gameClient.running);
 });

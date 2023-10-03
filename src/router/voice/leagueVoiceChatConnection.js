@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const LISTENIP = process.env.LISTENIP;
 
-export default (socket) => {
+export default (io, socket) => {
   console.log('전체방 소켓연결성공');
 
   socket.on('league-join-room', async ({ roomName, teamName, summoner }, callback) => {
@@ -13,7 +13,7 @@ export default (socket) => {
     socket.roomName = roomName;
 
     const room = await getRoomOrCreate(roomName);
-    const peer = new Peer(socket, summoner, teamName);
+    const peer = new Peer(socket.id, summoner, teamName);
     room.addPeer(peer);
 
     let enemyRoomName = '';
@@ -36,7 +36,7 @@ export default (socket) => {
 
     const rtpCapabilities = room.router.rtpCapabilities;
     callback({ rtpCapabilities, leagueTitleList });
-    console.log(`${summoner.name} 방 입장`);
+    console.log(`${summoner.name} 전체방 입장`);
   });
 
   async function getRoomOrCreate(roomName) {
@@ -110,7 +110,7 @@ export default (socket) => {
     });
   }
 
-  socket.on('transport-connect', async ({ dtlsParameters }) => {
+  socket.on('transport-connect', async (dtlsParameters) => {
     const room = Room.findByName(socket.roomName);
     const peer = room.findPeerBySocketId(socket.id);
     const trnasport = peer.findProducerTransport();
@@ -129,7 +129,7 @@ export default (socket) => {
 
     informNewProducer(room, peer, producer.id);
     peer.addProducer(producer);
-    const otherPeers = room.getOtherPeerList(peer.socket.id);
+    const otherPeers = room.getOtherPeerList(peer.socketId);
 
     callback({
       id: producer.id,
@@ -140,7 +140,7 @@ export default (socket) => {
   function informNewProducer(room, me, producerId) {
     room
       .getOtherPeerList(me.socketId)
-      .filter((peer) => peer.teamName !== myPeer.teamName)
+      .filter((peer) => peer.teamName !== me.teamName)
       .forEach((peer) => {
         io.to(peer.socketId).emit('new-producer', {
           id: producerId,
