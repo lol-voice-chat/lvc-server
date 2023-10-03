@@ -27,7 +27,7 @@ export default (io, socket) => {
 
     if (!room) {
       const router = await worker.createRouter();
-      const generatedRoom = new Room(router, leagueTitleList);
+      const generatedRoom = new Room(router);
       Room.save(roomName, generatedRoom);
 
       return generatedRoom;

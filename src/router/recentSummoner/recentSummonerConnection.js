@@ -1,6 +1,6 @@
 import redisClient from '../../lib/redisClient.js';
 
-const EXPIRE_TIME = 604800;
+const EXPIRE_TIME = 604800; //second
 
 export default (socket) => {
   socket.on('online-summoner', async ({ summoner, friendSummonerIdList }, callback) => {
