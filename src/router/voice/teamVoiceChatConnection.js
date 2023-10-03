@@ -1,7 +1,6 @@
 import { Room, Peer } from '../../models/index.js';
 import * as worker from '../../lib/worker.js';
 import dotenv from 'dotenv';
-import { getRandomLeagueTitle } from '../../models/LeagueTitle.js';
 
 dotenv.config();
 const LISTENIP = process.env.LISTENIP;
@@ -19,7 +18,6 @@ export default (io, socket) => {
 
     callback({
       rtpCapabilities: room.router.rtpCapabilities,
-      leagueTitleList: room.leagueTitleList,
     });
     console.log(`${summoner.name} 방 입장`);
   });
@@ -29,7 +27,6 @@ export default (io, socket) => {
 
     if (!room) {
       const router = await worker.createRouter();
-      const leagueTitleList = getRandomLeagueTitle(5);
       const generatedRoom = new Room(router, leagueTitleList);
       Room.save(roomName, generatedRoom);
 
@@ -190,12 +187,6 @@ export default (io, socket) => {
 
     await consumer.resume();
     console.log(`${peer.details.name} consum resume`);
-  });
-
-  socket.on('league-title', (leagueTitleList) => {
-    const room = Room.findByName(socket.roomName);
-    room.saveLeagueTitle(leagueTitleList);
-    console.log('리그칭호 저장됨');
   });
 
   socket.on('exit-champ-select', () => {

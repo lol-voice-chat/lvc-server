@@ -16,26 +16,8 @@ export default (io, socket) => {
     const peer = new Peer(socket.id, summoner, teamName);
     room.addPeer(peer);
 
-    let enemyRoomName = '';
-    if (roomName.slice(0, teamName.length) === teamName) {
-      enemyRoomName = roomName.slice(teamName.length, roomName.length);
-    } else {
-      for (let i = 0; i < roomName.length - teamName.length; i++) {
-        enemyRoomName += roomName[i];
-      }
-    }
-
-    const enemyRoom = Room.findByName(enemyRoomName);
-    let leagueTitleList = enemyRoom
-      .getPeerLeagueTitleList()
-      .concat(room.getPeerLeagueTitleList());
-    //
-    if (leagueTitleList.filter((leagueTitle) => leagueTitle !== null).length === 0) {
-      leagueTitleList = null;
-    }
-
     const rtpCapabilities = room.router.rtpCapabilities;
-    callback({ rtpCapabilities, leagueTitleList });
+    callback({ rtpCapabilities });
     console.log(`${summoner.name} 전체방 입장`);
   });
 

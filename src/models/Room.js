@@ -2,12 +2,10 @@ class Room {
   static rooms = new Map();
 
   router;
-  leagueTitleList;
   peers;
 
-  constructor(router, leagueTitleList) {
+  constructor(router) {
     this.router = router;
-    this.leagueTitleList = leagueTitleList;
     this.peers = new Map();
   }
 
@@ -27,24 +25,6 @@ class Room {
 
   deletePeer = (socketId) => {
     this.peers.delete(socketId);
-  };
-
-  saveLeagueTitle = (summonerLeagueTitleList) => {
-    if (summonerLeagueTitleList === null) {
-      return;
-    }
-    Array.from(this.peers.values()).forEach((peer) => {
-      for (const leagueTitle of summonerLeagueTitleList) {
-        if (peer.details.summonerId === leagueTitle.summonerId) {
-          peer.saveLeagueTitle(leagueTitle);
-          break;
-        }
-      }
-    });
-  };
-
-  getPeerLeagueTitleList = () => {
-    return Array.from(this.peers.values()).map((peer) => peer.leagueTitle);
   };
 }
 
