@@ -45,7 +45,6 @@ export default async (wss, ws) => {
     }
 
     if (_data.key === 'before-message') {
-      console.log('감지: ', _data.page);
       if (_data.page) {
         const pageNumber = parseInt(_data.page.toString() + '00');
         const length = await redisClient.lLen('main-chat');
