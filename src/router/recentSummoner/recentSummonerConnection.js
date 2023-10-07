@@ -14,35 +14,38 @@ export default (socket) => {
       const foundMe = await redisClient.get(redisKey);
       const me = JSON.parse(foundMe);
 
-      const newRecentSummonerIdList = [];
-      const recentSummonerList = await Promise.all(
-        me.recentSummonerIdList.map(async (recentSummonerId) => {
-          const redisKey = recentSummonerId.toString() + 'recent'; //계속 에러남
-          const existsRecentSummoner = await redisClient.exists(redisKey);
+      if (me.recentSummonerIdList.length === 0) {
+        const recentSummonerIdList = [];
+        callback(recentSummonerIdList);
+      } else {
+        const newRecentSummonerIdList = [];
+        const recentSummonerList = await Promise.all(
+          me.recentSummonerIdList.map(async (recentSummonerId) => {
+            const redisKey = recentSummonerId.toString() + 'recent'; //계속 에러남
+            const existsRecentSummoner = await redisClient.exists(redisKey);
 
-          if (existsRecentSummoner) {
-            newRecentSummonerIdList.push(recentSummonerId);
+            if (existsRecentSummoner) {
+              newRecentSummonerIdList.push(recentSummonerId);
 
-            const foundRecentSummoner = await redisClient.get(redisKey);
-            const recentSummoner = JSON.parse(foundRecentSummoner);
+              const foundRecentSummoner = await redisClient.get(redisKey);
+              const recentSummoner = JSON.parse(foundRecentSummoner);
 
-            if (friendSummonerIdList.includes(recentSummonerId)) {
-              recentSummoner.details.isRequested = true;
-              await redisClient.set(redisKey, JSON.stringify(recentSummoner));
+              if (friendSummonerIdList.includes(recentSummonerId)) {
+                recentSummoner.details.isRequested = true;
+                await redisClient.set(redisKey, JSON.stringify(recentSummoner));
+              }
+
+              return recentSummoner.details;
             }
+          }),
+        );
 
-            return recentSummoner.details;
-          }
-        }),
-      );
+        callback(recentSummonerList);
+        me.recentSummonerIdList = newRecentSummonerIdList;
 
-      callback(recentSummonerList);
-      me.recentSummonerIdList = newRecentSummonerIdList;
-
-      await redisClient.set(redisKey, JSON.stringify(me));
-      await redisClient.expire(redisKey, EXPIRE_TIME);
-
-      //
+        await redisClient.set(redisKey, JSON.stringify(me));
+        await redisClient.expire(redisKey, EXPIRE_TIME);
+      }
     } else {
       const recentSummonerIdList = [];
       callback(recentSummonerIdList);

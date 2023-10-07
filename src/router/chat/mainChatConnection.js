@@ -48,7 +48,6 @@ export default async (wss, ws) => {
       if (_data.page) {
         const pageNumber = parseInt(_data.page.toString() + '00');
         const length = await redisClient.lLen('main-chat');
-        console.log('총길이: ', length);
 
         let messageList;
         let isLast = false;
