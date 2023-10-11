@@ -203,6 +203,20 @@ export default (io, socket) => {
     }
   });
 
+  socket.on('end-of-the-game', () => {
+    const room = Room.findByName(socket.roomName);
+
+    if (room) {
+      Array.from(room.peers.values()).forEach((peer) => {
+        socket.leave(socket.roomName);
+        peer.disconnectVoice();
+        console.log(`${peer.details.name} 팀원방 나감`);
+      });
+
+      Room.delete(socket.roomName);
+    }
+  });
+
   socket.on('disconnect', () => {
     const room = Room.findByName(socket.roomName);
 
