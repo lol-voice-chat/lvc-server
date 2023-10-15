@@ -73,10 +73,6 @@ export default (socket) => {
     console.log('최근 함께한 소환사 업데이트');
   });
 
-  socket.on('disconnect', () => {
-    console.log('메인화면 나감');
-  });
-
   socket.on('friend-request', async (summonerId) => {
     const redisKey = summonerId + 'recent';
     const foundSummoner = await redisClient.get(redisKey);
