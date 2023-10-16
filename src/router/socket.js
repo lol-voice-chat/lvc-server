@@ -6,7 +6,6 @@ import {
   leagueVoiceChatManagerConnection,
 } from './voice/index.js';
 import generalChatConnection from './chat/generalChatConnection.js';
-import recentSummonerConnection from './recentSummoner/recentSummonerConnection.js';
 
 const socketCors = {
   cors: {
@@ -20,7 +19,6 @@ export default (server) => {
   const io = new Server(server, socketCors);
 
   onVoiceConnections(io);
-  onRecentSummonerConnection(io);
   onChatConnections(io);
 };
 
@@ -38,11 +36,6 @@ function onVoiceConnections(io) {
     leagueVoiceChatConnection(leagueVoiceChatIo, socket);
   });
   leagueVoiceChatManagerIo.on('connection', leagueVoiceChatManagerConnection);
-}
-
-function onRecentSummonerConnection(io) {
-  const recentSummonerIo = io.of('/summoner-status');
-  recentSummonerIo.on('connection', recentSummonerConnection);
 }
 
 function onChatConnections(io) {
