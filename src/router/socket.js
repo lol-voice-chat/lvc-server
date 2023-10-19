@@ -6,6 +6,7 @@ import {
   leagueVoiceChatManagerConnection,
 } from './voice/index.js';
 import generalChatConnection from './chat/generalChatConnection.js';
+import manageConnection from './manage/manageConnection.js';
 
 const socketCors = {
   cors: {
@@ -20,6 +21,7 @@ export default (server) => {
 
   onVoiceConnections(io);
   onChatConnections(io);
+  onManageConnection(io);
 };
 
 function onVoiceConnections(io) {
@@ -43,4 +45,9 @@ function onChatConnections(io) {
   generalChatIo.on('connection', (socket) => {
     generalChatConnection(generalChatIo, socket);
   });
+}
+
+function onManageConnection(io) {
+  const manageIo = io.of('/manage');
+  manageIo.on('connection', manageConnection);
 }

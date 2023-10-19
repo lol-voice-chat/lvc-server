@@ -31,21 +31,21 @@ export default (io, socket) => {
 
   socket.on('before-message', async (page) => {
     if (page) {
-      const _page = parseInt(page.toString() + '00');
+      const _page = parseInt(page.toString() + '00') - 1;
       const length = await redisClient.lLen(key);
 
       let messageList;
       let isLast = false;
 
-      if (_page + 100 >= length) {
+      if (_page + 99 >= length) {
         messageList = await redisClient.lRange(key, _page, -1);
         isLast = true;
       } else {
-        messageList = await redisClient.lRange(key, _page, _page + 100);
+        messageList = await redisClient.lRange(key, _page, _page + 99);
       }
 
       const data = {
-        messageList: messageList.map(JSON.parse),
+        messageList: messageList.reverse().map(JSON.parse),
         isLast,
       };
 
