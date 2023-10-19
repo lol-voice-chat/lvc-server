@@ -8,7 +8,7 @@ const key = 'main-chat';
 
 export default (io, socket) => {
   socket.on('init', async (callback) => {
-    const messageList = (await redisClient.lRange(key, 0, 99)).map(JSON.parse);
+    const messageList = (await redisClient.lRange(key, 0, 99)).reverse().map(JSON.parse);
     callback(messageList);
   });
 
@@ -26,7 +26,7 @@ export default (io, socket) => {
     };
 
     io.emit('message', _data);
-    await redisClient.rPush(key, JSON.stringify(_data));
+    await redisClient.lPush(key, JSON.stringify(_data));
   });
 
   socket.on('before-message', async (page) => {
