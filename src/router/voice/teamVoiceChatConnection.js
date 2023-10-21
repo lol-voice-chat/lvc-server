@@ -227,11 +227,6 @@ export default (io, socket) => {
         .to(socket.roomName)
         .emit('inform-exit-in-game', { summonerId: disconnectedPeer.details.summonerId });
 
-      console.log(
-        Array.from(room.peers.values()).filter((peer) => peer.socketId !== socket.id)
-          .length,
-      );
-
       Array.from(room.peers.values())
         .filter((peer) => peer.socketId !== socket.id)
         .forEach((peer) => {

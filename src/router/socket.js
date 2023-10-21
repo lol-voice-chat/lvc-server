@@ -33,11 +33,18 @@ function onVoiceConnections(io) {
   teamVoiceChatIo.on('connection', (socket) => {
     teamVoiceChatConnection(teamVoiceChatIo, socket);
   });
-  teamVoiceChatManagerIo.on('connection', teamVoiceChatManagerConnection);
+
+  teamVoiceChatManagerIo.on('connection', (socket) => {
+    teamVoiceChatManagerConnection(teamVoiceChatManagerIo, socket);
+  });
+
   leagueVoiceChatIo.on('connection', (socket) => {
     leagueVoiceChatConnection(leagueVoiceChatIo, socket);
   });
-  leagueVoiceChatManagerIo.on('connection', leagueVoiceChatManagerConnection);
+
+  leagueVoiceChatManagerIo.on('connection', (socket) => {
+    leagueVoiceChatManagerConnection(leagueVoiceChatManagerIo, socket);
+  });
 }
 
 function onChatConnections(io) {
