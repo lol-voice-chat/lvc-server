@@ -31,7 +31,7 @@ export default (io, socket) => {
 
   socket.on('before-message', async (page) => {
     if (page) {
-      const _page = parseInt(page.toString() + '00') - 1;
+      const _page = page * 100 - 1;
       const length = await redisClient.lLen(key);
 
       let messages;
