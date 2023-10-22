@@ -49,17 +49,13 @@ class Peer {
     this.producer?.close();
     this.producerTransport?.close();
 
-    if (this.consumers.size > 0) {
-      Array.from(this.consumers.values()).forEach((consumer) => {
-        consumer.close();
-      });
-    }
+    Array.from(this.consumers.values()).forEach((consumer) => {
+      consumer.close();
+    });
 
-    if (this.consumerTransports.size > 0) {
-      Array.from(this.consumerTransports.values()).forEach((transport) => {
-        transport.close();
-      });
-    }
+    Array.from(this.consumerTransports.values()).forEach((transport) => {
+      transport.close();
+    });
   }
 }
 
