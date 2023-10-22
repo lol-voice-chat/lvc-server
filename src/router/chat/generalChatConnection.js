@@ -7,9 +7,9 @@ dayjs.locale('ko');
 const key = 'main-chat';
 
 export default (io, socket) => {
-  socket.on('init', async (callback) => {
-    const messageList = (await redisClient.lRange(key, 0, 99)).reverse().map(JSON.parse);
-    callback(messageList);
+  redisClient.lRange(key, 0, 99).then((messages) => {
+    const _messages = messages.reverse().map(JSON.parse);
+    socket.emit('init', _messages);
   });
 
   socket.on('new-message', async (data) => {
@@ -34,18 +34,18 @@ export default (io, socket) => {
       const _page = parseInt(page.toString() + '00') - 1;
       const length = await redisClient.lLen(key);
 
-      let messageList;
+      let messages;
       let isLast = false;
 
       if (_page + 99 >= length) {
-        messageList = await redisClient.lRange(key, _page, -1);
+        messages = await redisClient.lRange(key, _page, -1);
         isLast = true;
       } else {
-        messageList = await redisClient.lRange(key, _page, _page + 99);
+        messages = await redisClient.lRange(key, _page, _page + 99);
       }
 
       const data = {
-        messageList: messageList.reverse().map(JSON.parse),
+        messageList: messages.reverse().map(JSON.parse),
         isLast,
       };
 
