@@ -1,16 +1,35 @@
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko.js';
-import redisClient from '../../lib/redisClient.js';
+import prisma from '../../lib/db.js';
 
 dayjs.locale('ko');
 
-const key = 'main-chat';
-
-export default (io, socket) => {
-  redisClient.lRange(key, 0, 99).then((messages) => {
-    const _messages = messages.reverse().map(JSON.parse);
-    socket.emit('init', _messages);
+const getChatRecords = async (skip = 0) => {
+  const chatRecords = await prisma.chat.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      summoner: true,
+      message: true,
+      time: true,
+    },
+    skip: skip,
+    take: 100,
   });
+
+  return chatRecords.reverse().map((chatRecord) => {
+    return {
+      summoner: chatRecord.summoner,
+      message: chatRecord.message,
+      time: chatRecord.time,
+    };
+  });
+};
+
+export default async (io, socket) => {
+  const chatRecords = await getChatRecords();
+  socket.emit('init', chatRecords);
 
   socket.on('new-message', async (data) => {
     const time = dayjs()
@@ -24,29 +43,27 @@ export default (io, socket) => {
       message: data.message,
       time,
     };
-
     io.emit('message', _data);
-    await redisClient.lPush(key, JSON.stringify(_data));
+
+    await prisma.chat.create({
+      data: {
+        summoner: {
+          connect: { summonerId: data.summoner.summonerId },
+        },
+        message: data.message,
+        time: time,
+      },
+    });
   });
 
   socket.on('before-message', async (page) => {
     if (page) {
-      const _page = page * 100 - 1;
-      const length = await redisClient.lLen(key);
-
-      let messages;
-      let isLast = false;
-
-      if (_page + 99 >= length) {
-        messages = await redisClient.lRange(key, _page, -1);
-        isLast = true;
-      } else {
-        messages = await redisClient.lRange(key, _page, _page + 99);
-      }
+      const _page = page * 100;
+      const chatRecord = await getChatRecords(_page);
 
       const data = {
-        messageList: messages.reverse().map(JSON.parse),
-        isLast,
+        messageList: chatRecord,
+        isLast: chatRecord.length < 100 ? true : false,
       };
 
       socket.emit('response-before-message', data);
