@@ -1,7 +1,7 @@
 {
-  "name": "lvc-server",
+  "name": "y",
   "version": "1.0.0",
-  "description": "",
+  "description": "<div align=\"center\"> \t<img src=\"https://github.com/lol-voice-chat/.github/assets/105103712/3c8d29ee-2e7a-48fb-bc9f-e6262410a5ab\" width=\"300\"> \t<h1  style=\"color:black\" >롤보챗 (Lol Voice Chat)</h1> \t<p> \t\t<b>롤에서 매칭된 팀원과 음성채팅이 가능한 데스크탑 어플리케이션 서비스</b> \t</p> \t<br> \t<br> \t<br>",
   "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -23,5 +23,6 @@
     "redis": "^4.6.8",
     "socket.io": "^4.7.2"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {}
 }
