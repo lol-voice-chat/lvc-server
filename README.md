@@ -29,3 +29,4 @@ https://github.com/lol-voice-chat/lvc-server/assets/80371249/9e96082f-d1cb-4507-
 ## 기타
 - [전체 시연영상(Youtube)](https://www.youtube.com/watch?v=dPKcg0MB7iA) <br>
 - [더 다양한 기능과 설명](https://github.com/lol-voice-chat)
+- [데스크탑앱 디자인](https://www.figma.com/file/alSAbh8Jt8LEX9IF8uvray/%EB%A1%A4%EB%B3%B4%EC%B1%97?type=design&node-id=0%3A1&mode=design&t=Wi3T8eOW3AHJdbvs-1)
